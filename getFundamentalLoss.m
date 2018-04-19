@@ -1,16 +1,20 @@
-function [ meanDistance ] = getFundamentalLoss( points, epi_points, epi_vectors )
+function [ meanDistance ] = getFundamentalLoss( points, lines )
 % Implement a method calculating the average distance of points in image B 
 % to their epipolar lines of the corresponding points in image A. This
 % average distance can be interpreted as fundamental matrix accuracy FA. 
     distance = 0;
     for i = 1:size(points, 1)
         % Calculate point to line distances
-        % Given a point p, and a line defined by a + tn, 
-        % distance = norm((a - p) -  ((a - p).n)n)
-        a = epi_points(i,:);
-        p = points(i,:);
-        n = epi_vectors(i,:) / norm(epi_vectors(i,:)); % Making sure unit length
-        distance = distance + norm((a - p) - ( (a - p) * n' ) .* n);
+        % Given a point (x,y), and a line defined by ax + by + c = 0,
+        % distance = norm(ax + by + c) / sqrt(a^2 + b^2)
+        x = points(i,1);
+        y = points(i,2);
+        a = lines(i,1);
+        b = lines(i,2);
+        c = lines(i,3);
+        numerator = norm(a*x + b*y + c);
+        denominator = sqrt(a^2 + b^2);
+        distance = distance + (numerator/denominator);
     end
     meanDistance = distance / size(points, 1);
 end

@@ -7,14 +7,12 @@ end
 imgA = images{1};
 imgB = images{5};
 
-% figure(1);
-% imshow(imgA);
-% figure(2);
-% imshow(imgB);
-% imshow(imgA);
-% title('Base image');
-% figure; imshow(imgB);
-% title('Transformed image');
+figure;
+imshow(imgA);
+title('Image A');
+figure; 
+imshow(imgB);
+title('Image B');
 
 % Detect features
 ptsOriginal = detectSURFFeatures(imgA);
@@ -31,20 +29,32 @@ matchedPtsDistorted = validPtsDistorted(index_pairs(:,2));
 %     matchedPtsOriginal,matchedPtsDistorted);
 % title('Matched SURF points,including outliers');
 
+% Exclude outliers
+[tform,inlierPtsDistorted,inlierPtsOriginal] = ...
+    estimateGeometricTransform(matchedPtsDistorted, matchedPtsOriginal,...
+    'similarity');
+
 % Ready!
-pointsA = matchedPtsOriginal.Location;
-pointsB = matchedPtsDistorted.Location;
+pointsA = inlierPtsOriginal.Location;
+pointsB = inlierPtsDistorted.Location;
 
 %%
 % a) Implement a method for estimating a homography matrix given a set of corresponding
 % point coordinates.
 
-homographyMat = estimateHomography(pointsA, pointsB);
+homographyMat = estimateHomography(pointsB, pointsA); % Projects B onto A
+
+A = transpose(homographyMat);  %Your matrix in here
+A(1:2,3) = 0;
+t = maketform('affine', A);
+imgA_hat = imtransform(imgB,t);
+figure;
+imshow(imgA_hat);
 
 %%
 % b) Similarly to Q1.3.a, implement a method for estimating a fundamental matrix.
 
-fundamentalMat = estimateFundamental(pointsA, pointsB);
+fundamentalMat = estimateFundamental(pointsB, pointsA);
 
 %%
 % c) Implement a method for projecting point coordinates from image B to A given
@@ -62,8 +72,9 @@ homography_accuracy = getHomographyLoss(pointsA, pointsA_hat);
 % lines of the corresponding points in image A. This average distance can be interpreted as
 % fundamental matrix accuracy FA. 
 
-[epi_points, epi_vectors] = getEpipolarLines(pointsB, fundamentalMat);
-drawLines(imgA, epi_points, epi_vectors);
-fundamental_accuracy = getFundamentalLoss(pointsB, epi_points, epi_vectors);
+fundamentalMat = estimateFundamental(pointsA, pointsB);
+[lines] = getEpipolarLines(pointsA, fundamentalMat);
+drawLines(imgA, lines);
+fundamental_accuracy = getFundamentalLoss(pointsB, lines');
 
 
