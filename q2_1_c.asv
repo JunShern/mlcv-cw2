@@ -1,0 +1,100 @@
+%%%% Script for Question 2, part 1b) %%%%%%%%%
+I1 = imread('scene1.row3.col1.ppm');
+I2 = imread('scene1.row3.col2.ppm');
+% % Reading image - just need one
+% I1 = imread('Lab1.jpg');
+% I2 = imread('Lab2.jpg');    %% First rotated image, need HG photos
+% 
+% % Scaling down image by different factors
+% scale_res = 0.25;   % Resolution of iPhone photo is too much, need initial resizing
+% I1 = imresize(I1, scale_res);
+% I2 = imresize(I2, scale_res);
+
+% Converting to grayscale
+img1 = rgb2gray(I1);
+img2 = rgb2gray(I2);
+
+%% Automatic Correspondences
+    
+% Performing harris detection for the images
+harris1 = harrisDetection(img1, 1000);
+harris2 = harrisDetection(img2, 1000);
+
+% Take output interest point matrix and get the descriptors
+descriptor1 = getDescriptors(img1, harris1);
+descriptor2 = getDescriptors(img2, harris2);
+
+% Nearest Neighbor matching of descriptors
+matches = nearestNeighbor(descriptor1, descriptor2);
+% matches = nearestNeighbor(descriptor1, descriptor2);
+
+% Estimate a transformation based on the matches between A and B
+% Based on matched patches, build two matrices of co-ordinates
+nMatch = size(matches, 2);
+coord1 = zeros(2, nMatch);
+coord2 = zeros(2, nMatch);
+for i=1:nMatch
+    n = matches(1, i);
+    m = matches(2, i);
+    coord1(:, i) = harris1(:, n);
+    coord2(:, i) = harris2(:, m);
+end
+
+% Exclude outliers
+% pointsA = coord1';
+% pointsB = coord2';
+[tform,pointsA,pointsB] = estimateGeometricTransform(coord1', coord2', 'similarity');
+
+%%
+% Now apply Homography to both sets of coordinates
+minimumNumMatches = 1
+maximumNumMatches = length(pointsB)
+index = 1;
+homography_accuracy = zeros(size(minimumNumMatches:maximumNumMatches));
+for numMatches = minimumNumMatches:maximumNumMatches
+    homographyMat = estimateHomography(pointsB(1:numMatches,:), pointsA(1:numMatches,:)); % Projects B onto A
+
+    % Matlab projection function
+    % A = transpose(homographyMatAuto);  %Your matrix in here
+    % A(1:2,3) = 0;
+    % t = maketform('affine', A);
+    % img1_hat = imtransform(img2,t);
+    % figure;
+    % imshow(img1_hat);
+
+    pointsA_hat = projectWithHomography(pointsB, homographyMat);
+    loss = getHomographyLoss(pointsA, pointsA_hat);
+    homography_accuracy(index) = loss;
+    index = index + 1;
+%     figure(1)
+%     imshow(img1);
+%     hold on
+%     scatter(pointsA(:,1), pointsA(:,2), 'MarkerEdgeColor', 'blue');
+%     hold on
+%     scatter(pointsA_hat(:,1), pointsA_hat(:,2), 'MarkerEdgeColor', 'red');
+%     for i = 1:length(pointsA)
+%         plot([pointsA(i,1) pointsA_hat(i,1)], [pointsA(i,2) pointsA_hat(i,2)]);
+%         hold on;
+%     end
+%     title([num2str(numMatches) ' Best Matches, Loss = ' num2str(loss)]);
+%     
+%     w = waitforbuttonpress;
+end
+
+%%
+figure 
+plot(minimumNumMatches:maximumNumMatches, homography_accuracy);
+title('HA error against number of correspondences');
+
+%%
+% Find and show the outliers and explain your approach to that
+
+allPointsA = coord1';
+allPointsB = coord2';
+inlierPointsA = pointsA;
+inlierPointsB = pointsB;
+
+inlierIndices = ismember(allPointsA,inlierPointsA,'rows');
+outlierPointsA = allPointsA(~inlierIndices,:);
+outlierPointsB = allPointsB(~inlierIndices,:);
+
