@@ -1,21 +1,21 @@
 %%%% Script for Question 2, part 1b) %%%%%%%%%
 % I1 = imread('scene1.row3.col1.ppm');
 % I2 = imread('scene1.row3.col2.ppm');
-I1 = imread('img1.pgm');
-I2 = imread('img2.pgm');
+% I1 = imread('img1.pgm');
+% I2 = imread('img2.pgm');
 
-% % Reading image - just need one
-% I1 = imread('Lab1.jpg');
-% I2 = imread('Lab6.jpg');    %% First rotated image, need HG photos
-% 
-% % Scaling down image by different factors
-% scale_res = 0.25;   % Resolution of iPhone photo is too much, need initial resizing
-% I1 = imresize(I1, scale_res);
-% I2 = imresize(I2, scale_res);
+% Reading image - just need one
+I1 = imread('Lab1.jpg');
+I2 = imread('Lab6.jpg');    %% First rotated image, need HG photos
+
+% Scaling down image by different factors
+scale_res = 0.25;   % Resolution of iPhone photo is too much, need initial resizing
+I1 = imresize(I1, scale_res);
+I2 = imresize(I2, scale_res);
 
 % Converting to grayscale
-% img1 = rgb2gray(I1);
-% img2 = rgb2gray(I2);
+img1 = rgb2gray(I1);
+img2 = rgb2gray(I2);
 
 %% Automatic Correspondences
     
@@ -87,7 +87,10 @@ end
 %%
 figure 
 plot(minimumNumMatches:maximumNumMatches, homography_accuracy);
-title('HA error against number of correspondences');
+title('HA error against number of correspondences', 'FontSize', 14);
+xlabel('Number of correspondences');
+ylabel('HA error');
+grid on;
 
 %%
 % Find and show the outliers and explain your approach to that
@@ -101,12 +104,13 @@ inlierIndices = ismember(allPointsA,inlierPointsA,'rows');
 outlierPointsA = allPointsA(~inlierIndices,:);
 outlierPointsB = allPointsB(~inlierIndices,:);
 
-p1 = cornerPoints(outlierPointsA);
-p2 = cornerPoints(outlierPointsB);
+% k = randperm(size(outlierPointsA,1));
+p1 = cornerPoints(outlierPointsA(k(1:50),:));
+p2 = cornerPoints(outlierPointsB(k(1:50),:));
 % MATLAB function for visualization
 %figure;
 %showMatchedFeatures(img1, img2, p1, p2);
 figure; ax = axes;
 showMatchedFeatures(img1,img2,p1,p2,'montage','Parent',ax);
-title(ax, 'Candidate point matches');
+title(ax, 'Sample of 50 outlier pairs', 'FontSize', 24);
 legend(ax, 'Matched points 1','Matched points 2');

@@ -50,7 +50,6 @@ title('input transformed');
 % figure; imshow(Ir); 
 % title('Recovered image');
 
-
 outputView = imref2d(size(imgB));
 Ir = imwarp(imgA,tform,'OutputView',outputView);
 figure; imshow(Ir); 

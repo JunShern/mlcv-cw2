@@ -37,7 +37,7 @@ end
 
 matchedPts1 = [x1;y1];
 matchedPts2 = [x2; y2];
-
+save('fd_manual_Lab1_Lab2.mat', 'matchedPts1', 'matchedPts2');
 
 %% Now apply Homography to both sets of coordinates
 
@@ -50,8 +50,15 @@ A = transpose(homographyMatManual);  %Your matrix in here
 A(1:2,3) = 0;
 t = maketform('affine', A);
 img1_hat = imtransform(img2,t);
-figure;
+figure
+imshow(img2);
+title('Input Image', 'FontSize', 24);
+figure
+imshow(img1);
+title('Homography Target Image', 'FontSize', 24);
+figure
 imshow(img1_hat);
+title('Transformed Image using Manual Correspondence', 'FontSize', 24);
 
 %% Automatic Correspondences
 
@@ -89,6 +96,7 @@ A = transpose(homographyMatAuto);  %Your matrix in here
 A(1:2,3) = 0;
 t = maketform('affine', A);
 img1_hat = imtransform(img2,t);
-figure;
+figure
 imshow(img1_hat);
+title('Transformed Image using Automatic Correspondence', 'FontSize', 24);
 

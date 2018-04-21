@@ -11,13 +11,13 @@ I1 = imread('Lab1.jpg');
 scale_res = 0.25;   % Resolution of iPhone photo is too much, need initial resizing
 I1 = imresize(I1, scale_res);
 I2 = imresize(I1, 0.5);     % Scale by factor of 2
-I3 = imresize(I1, 0.33);    % Scale by factor of 3  
+I3 = imresize(I1, 0.33);    % Scale by factor of 3
 
 % Converting to grayscale
 img1 = rgb2gray(I1);
 img2 = rgb2gray(I2);
 img3 = rgb2gray(I3);
-
+%%
 % Performing harris detection for the images
 harris1 = harrisDetection(img1, 3000);
 harris2 = harrisDetection(img2, 3000);
